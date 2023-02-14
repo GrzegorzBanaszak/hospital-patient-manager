@@ -1,13 +1,33 @@
+using API.Data;
+using API.Dtos;
+using API.Models;
+using AutoMapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var sqlConnectionBuilder = new SqlConnectionStringBuilder();
+
+//Create connection string from secret and json configuration
+sqlConnectionBuilder.ConnectionString = builder.Configuration.GetConnectionString("SQLDbConnection");
+sqlConnectionBuilder.UserID = builder.Configuration["UserId"];
+sqlConnectionBuilder.Password = builder.Configuration["Password"];
+
+
+
+//Add dependence
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(sqlConnectionBuilder.ConnectionString));
+builder.Services.AddScoped<IPatientRepo, PatientRepo>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -16,28 +36,29 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+#region Patient
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("api/patient/", async (IPatientRepo repo, IMapper mapper) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateTime.Now.AddDays(index),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var patients = await repo.GetAll();
+
+    return Results.Ok(mapper.Map<IEnumerable<PatientReadDto>>(patients));
+
+});
+
+app.MapPost("api/patient/add", async (IPatientRepo repo,IMapper mapper,PatientCreateDto dto) => { 
+    var patientModel = mapper.Map<Patient>(dto);
+
+    await repo.Create(patientModel);
+    await repo.SaveChanges();
+
+    var patientRead = mapper.Map<PatientReadDto>(patientModel);
+
+    return Results.Created($"api/v1/commands/{patientModel.Id}", patientRead);
+
+});
+
+#endregion
+
 
 app.Run();
-
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

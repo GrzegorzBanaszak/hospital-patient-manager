@@ -46,7 +46,18 @@ app.MapGet("api/patient/", async (IPatientRepo repo, IMapper mapper) =>
 
 });
 
-app.MapPost("api/patient/add", async (IPatientRepo repo,IMapper mapper,PatientCreateDto dto) => { 
+app.MapGet("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id) =>
+{
+    var patientModel = await repo.GetById(id);
+
+    if(patientModel == null) return Results.NotFound();
+
+    return Results.Ok(mapper.Map<PatientReadDto>(patientModel));
+
+});
+
+app.MapPost("api/patient/", async (IPatientRepo repo, IMapper mapper, PatientCreateDto dto) =>
+{
     var patientModel = mapper.Map<Patient>(dto);
 
     await repo.Create(patientModel);
@@ -55,6 +66,37 @@ app.MapPost("api/patient/add", async (IPatientRepo repo,IMapper mapper,PatientCr
     var patientRead = mapper.Map<PatientReadDto>(patientModel);
 
     return Results.Created($"api/v1/commands/{patientModel.Id}", patientRead);
+
+});
+
+app.MapPut("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id,PatientUpdateDto dto) => {
+    var patientModel = await repo.GetById(id);
+
+    if (patientModel == null) return Results.NotFound();
+
+    mapper.Map(dto,patientModel);
+
+    await repo.SaveChanges();
+
+    return Results.NoContent();
+
+
+});
+
+app.MapDelete("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id) =>
+{
+    var patientModel = await repo.GetById(id);
+
+    if (patientModel == null)
+    {
+        return Results.NotFound();
+    }
+
+    repo.Delete(patientModel);
+
+    await repo.SaveChanges();
+
+    return Results.NoContent();
 
 });
 

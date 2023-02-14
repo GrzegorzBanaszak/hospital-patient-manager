@@ -11,7 +11,7 @@ namespace API.Profiles
             // Source -> Target
             CreateMap<PatientCreateDto, Patient>();
             CreateMap<Patient, PatientReadDto>();
-            
+            CreateMap<PatientUpdateDto, Patient>();
 
         }
     }

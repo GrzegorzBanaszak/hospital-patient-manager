@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "RlubwjQoHGy+QAKU6mH/Vh1Xf6XJc3UbtMxbwULn42GfzAP4wk5Ev5u4M9zoUyshvChBnBGrmDv0OzBf0jK1ZQ==",
+  "dgSpecHash": "56i4toE1c6E7Eef3pxtciSQDmvbF0ESThWWreR9rKXQfDTM8B1EsFVrwPi7DD+vdJDqpeov1k603072rU2YUmQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\wobbo\\OneDrive\\Dokumenty\\hospital-patient-manager\\API\\API.csproj",
+  "projectFilePath": "C:\\Users\\wobbo\\OneDrive\\Dokumenty\\hospital-patient-manager\\api\\API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\wobbo\\.nuget\\packages\\automapper\\12.0.0\\automapper.12.0.0.nupkg.sha512",
     "C:\\Users\\wobbo\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.0\\automapper.extensions.microsoft.dependencyinjection.12.0.0.nupkg.sha512",

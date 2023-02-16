@@ -22,6 +22,7 @@ sqlConnectionBuilder.Password = builder.Configuration["Password"];
 //Add dependence
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(sqlConnectionBuilder.ConnectionString));
 builder.Services.AddScoped<IPatientRepo, PatientRepo>();
+builder.Services.AddScoped<IDoctorRepo, DoctorRepo>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
@@ -50,7 +51,7 @@ app.MapGet("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id)
 {
     var patientModel = await repo.GetById(id);
 
-    if(patientModel == null) return Results.NotFound();
+    if (patientModel == null) return Results.NotFound();
 
     return Results.Ok(mapper.Map<PatientReadDto>(patientModel));
 
@@ -69,12 +70,13 @@ app.MapPost("api/patient/", async (IPatientRepo repo, IMapper mapper, PatientCre
 
 });
 
-app.MapPut("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id,PatientUpdateDto dto) => {
+app.MapPut("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int id, PatientUpdateDto dto) =>
+{
     var patientModel = await repo.GetById(id);
 
     if (patientModel == null) return Results.NotFound();
 
-    mapper.Map(dto,patientModel);
+    mapper.Map(dto, patientModel);
 
     await repo.SaveChanges();
 
@@ -97,6 +99,39 @@ app.MapDelete("api/patient/{id}", async (IPatientRepo repo, IMapper mapper, int 
     await repo.SaveChanges();
 
     return Results.NoContent();
+
+});
+
+#endregion
+
+#region Doctor
+
+app.MapGet("api/doctor/", async (IDoctorRepo repo, IMapper mapper) =>
+{
+    var doctors = await repo.GetAll();
+
+    return Results.Ok(mapper.Map<DoctorReadDto>(doctors));
+});
+
+app.MapGet("api/doctor/{id}", async (IDoctorRepo repo, IMapper mapper, int id) =>
+{
+    var doctor = await repo.GetById(id);
+
+    if (doctor != null) return Results.Ok(mapper.Map<DoctorReadDto>(doctor));
+
+    return Results.NotFound();
+});
+
+app.MapPost("api/doctor", async (IDoctorRepo repo, IMapper mapper, DoctorCreateDto dto) =>
+{
+    var doctor = mapper.Map<Doctor>(dto);
+
+    await repo.Create(doctor);
+    await repo.SaveChanges();
+
+    var readPatient = mapper.Map<DoctorReadDto>(doctor);
+
+    return Results.Created($"api/doctor/{readPatient.Id}", readPatient);
 
 });
 

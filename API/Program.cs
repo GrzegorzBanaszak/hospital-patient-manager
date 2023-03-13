@@ -14,9 +14,8 @@ var sqlConnectionBuilder = new SqlConnectionStringBuilder();
 
 //Create connection string from secret and json configuration
 sqlConnectionBuilder.ConnectionString = builder.Configuration.GetConnectionString("SQLDbConnection");
-sqlConnectionBuilder.UserID = builder.Configuration["UserId"];
-sqlConnectionBuilder.Password = builder.Configuration["Password"];
-
+sqlConnectionBuilder.UserID = Environment.GetEnvironmentVariable("USER_ID");
+sqlConnectionBuilder.Password = Environment.GetEnvironmentVariable("PASSWORD");
 
 
 //Add dependence
@@ -132,6 +131,20 @@ app.MapPost("api/doctor", async (IDoctorRepo repo, IMapper mapper, DoctorCreateD
     var readPatient = mapper.Map<DoctorReadDto>(doctor);
 
     return Results.Created($"api/doctor/{readPatient.Id}", readPatient);
+
+});
+
+app.MapPut("api/doctor/{id}", async (IDoctorRepo repo, IMapper mapper, DoctorUpdateDto dto, int id) =>
+{
+    var doctorModel = await repo.GetById(id);
+
+    if (doctorModel == null) return Results.NotFound();
+
+    mapper.Map(dto, doctorModel);
+
+    await repo.SaveChanges();
+
+    return Results.NoContent();
 
 });
 
